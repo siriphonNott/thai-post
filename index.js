@@ -3,6 +3,11 @@ const app = express()
 const puppeteer = require('puppeteer');
 const port = process.env.PORT || 3001;
 
+
+app.get('/', (req, res)=>{
+  res.send({"status": "ok"});
+});
+
 app.get('/thai-post/:emsid', function (req, res) {
   let result = {
     "success": true,
