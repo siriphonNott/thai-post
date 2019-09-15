@@ -4,20 +4,23 @@ const puppeteer = require('puppeteer');
 const port = process.env.PORT || 3001;
 
 
-app.get('/', (req, res)=>{
-  res.send({"status": "ok"});
+app.get('/', (req, res) => {
+  res.send({
+    "status": "ok"
+  });
 });
 
 app.get('/thai-post/:emsid', function (req, res) {
   let result = {
     "success": true,
-    "data" : null
+    "data": null
   };
   var emsid = req.params.emsid;
   logger(`Checking emsid: ${emsid}`);
   (async () => {
     const browser = await puppeteer.launch({
-      headless: true
+      headless: true,
+      args:['--no-sandbox', '--disable-setuid-sandbox'] 
     }); // default is true (not show chrome)
 
     const page = await browser.newPage();
@@ -44,12 +47,12 @@ app.get('/thai-post/:emsid', function (req, res) {
       const tds = Array.from(document.querySelectorAll("#DataGrid1"));
       return tds.map(td => td.innerText.trim());
     });
-    
-    if(data==null || data.length < 1) {
+
+    if (data == null || data.length < 1) {
       result['success'] = false;
       res.status(404);
     } else {
-    
+
       // Modify output format
       data[0] = data[0].replace(/\t/g, ' ');
       var tracking = data[0].split("\n");
@@ -58,12 +61,12 @@ app.get('/thai-post/:emsid', function (req, res) {
       // combine 2 element(date and status) into 1 element
       // จันทร์ 23 กรกฎาคม 2561 
       // 18:02:14 น. สำเหร่  รับเข้าระบบ   
-      
+
       for (var i = 0; i + 1 <= tracking.length; i += 2) {
         temp = tracking[i + 1].split(" "); // 18:02:14 น. สำเหร่  รับเข้าระบบ   
         temp[3] = "=> " + temp[3].trim(); // change สำเหร่  รับเข้าระบบ to  สำเหร่ => รับเข้าระบบ
         tracking[i + 1] = temp.join(" ");
-        if(i+1 == tracking.length-1)
+        if (i + 1 == tracking.length - 1)
           tracking[i + 1] = tracking[i + 1].replace(' ชื่อผู้รับ', '');
         status.push(tracking[i] + tracking[i + 1]);
       }
